@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Termodinámica de la Sopa Maruchan - Simulador Interactivo</title>
+    
+    <!-- Hojas de estilo -->
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- KaTeX para renderizado de LaTeX ultra rápido -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}]});"></script>
+    
+    <!-- Chart.js para visualización de gráficas -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- PyScript para cálculos en Python en el navegador -->
+    <link rel="stylesheet" href="https://pyscript.net/alpha/pyscript.css" />
+    <script defer src="https://pyscript.net/alpha/pyscript.js"></script>
+</head>
+<body>
+
+    <!-- PyScript: Importamos la lógica matemática de calculos.py -->
+    <py-script src="./calculos.py"></py-script>
+
+    <!-- Overlay de Carga de PyScript -->
+    <div id="pyscript-status" class="pyscript-status">
+        <div class="spinner"></div>
+        <span>Iniciando motor matemático (PyScript Python)...</span>
+    </div>
+
+    <div class="container">
+        <!-- Encabezado con Storytelling -->
+        <header>
+            <div class="logo-container">
+                <span class="logo-badge">MARUCHAN</span>
+                <span style="font-size: 1.5rem; font-weight: 800; color: var(--primary);">THERMO</span>
+            </div>
+            <h1>Simulador de Enfriamiento de Fideos</h1>
+            <p>Descubre el momento matemático perfecto para comerte tu sopa instantánea favorita sin quemarte la lengua.</p>
+        </header>
+
+        <!-- Navegación de Pestañas -->
+        <nav class="tabs">
+            <button class="tab-btn active" data-tab="tab-simulador">🍜 Simulador Interactivo</button>
+            <button class="tab-btn" data-tab="tab-modelo">📐 Modelo Matemático</button>
+        </nav>
+
+        <!-- PESTAÑA 1: SIMULADOR -->
+        <main id="tab-simulador" class="tab-content active">
+            <div class="simulator-grid">
+                
+                <!-- Panel de Controles -->
+                <aside class="card">
+                    <h2 class="panel-title">
+                        <span>⚙️</span> Parámetros del Entorno
+                    </h2>
+                    
+                    <!-- Temp Inicial (T0) -->
+                    <div class="control-group">
+                        <label for="slider-t0">
+                            <span>Temp. Inicial ($T_0$)</span>
+                            <span id="val-t0" class="value">95°C</span>
+                        </label>
+                        <input type="range" id="slider-t0" min="80" max="100" step="1" value="95">
+                    </div>
+
+                    <!-- Temp Ambiente (Ts) -->
+                    <div class="control-group">
+                        <label for="slider-ts">
+                            <span>Temp. Ambiente ($T_s$)</span>
+                            <span id="val-ts" class="value">25°C</span>
+                        </label>
+                        <input type="range" id="slider-ts" min="5" max="45" step="1" value="25">
+                    </div>
+
+                    <!-- Constante k -->
+                    <div class="control-group">
+                        <label for="slider-k">
+                            <span>Tasa de Enfriamiento ($k$)</span>
+                            <span id="val-k" class="value">0.15</span>
+                        </label>
+                        <input type="range" id="slider-k" min="0.02" max="0.40" step="0.01" value="0.15">
+                    </div>
+
+                    <!-- Tiempo Simulación -->
+                    <div class="control-group">
+                        <label for="slider-maxt">
+                            <span>Tiempo Total ($t_{max}$)</span>
+                            <span id="val-maxt" class="value">20 min</span>
+                        </label>
+                        <input type="range" id="slider-maxt" min="10" max="45" step="5" value="20">
+                    </div>
+
+                    <!-- Control de Inspección Interactiva -->
+                    <h2 class="panel-title" style="margin-top: 2rem;">
+                        <span>⏱️</span> Control del Tiempo
+                    </h2>
+                    
+                    <div class="control-group">
+                        <label for="slider-inspect">
+                            <span>Minuto de Espera ($t$)</span>
+                            <span id="val-inspect" class="value">0 min</span>
+                        </label>
+                        <input type="range" id="slider-inspect" min="0" max="20" step="0.1" value="0">
+                    </div>
+
+                    <button id="btn-play" class="btn-reproducir" style="width:100%; border:none; color:white; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); box-shadow: 0 4px 15px rgba(255, 87, 34, 0.3); border-radius:12px; font-weight:700; padding: 0.8rem 2rem; font-family: inherit; font-size: 1.1rem; cursor: pointer; transition: var(--transition);">
+                        <span style="font-size: 1.1rem; margin-right: 5px;">▶</span> Reproducir Simulación
+                    </button>
+                </aside>
+
+                <!-- Zona de Salida y Storytelling -->
+                <section class="output-area">
+                    
+                    <!-- Tarjeta de Storytelling Dinámico -->
+                    <div class="card storytelling-card">
+                        <div class="soup-illustration-wrapper">
+                            <img id="soup-img" src="assets/maruchan_hot.png" alt="Estado de la Sopa Maruchan" class="soup-illustration">
+                            <!-- Contenedor para animación de vapor de agua -->
+                            <div id="steam-container"></div>
+                        </div>
+                        <div class="story-content">
+                            <div class="temp-indicator">
+                                <span id="current-temp-text">95.0 <span style="font-size: 1.5rem; font-weight: 500;">°C</span></span>
+                                <span id="temp-badge" class="temp-badge badge-hot">Peligro: ¡Quema!</span>
+                            </div>
+                            <div class="story-bubble">
+                                <p id="student-saying" class="student-saying">
+                                    ¡Ay! ¡Peligro, quema la lengua! 🥵 El agua hirviendo recién servida está a fuego vivo. ¡Ni se te ocurra meterle cuchara aún!
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tarjeta del Gráfico -->
+                    <div class="card chart-card">
+                        <h2 class="panel-title" style="border:none; margin-bottom:0.5rem;">
+                            <span>📊</span> Curva de Temperatura vs. Tiempo
+                        </h2>
+                        <div style="position: relative; height: 350px; width: 100%;">
+                            <canvas id="chart-canvas"></canvas>
+                        </div>
+                    </div>
+                </section>
+                
+            </div>
+        </main>
+
+        <!-- PESTAÑA 2: MODELO MATEMÁTICO -->
+        <main id="tab-modelo" class="tab-content">
+            <div class="math-grid">
+                
+                <!-- Explicación Teórica -->
+                <article class="card math-explanation">
+                    <h2>Ley de Enfriamiento de Newton</h2>
+                    <p>
+                        Para modelar cómo se enfría nuestra Sopa Maruchan, la física utiliza la <strong>Ley de Enfriamiento de Newton</strong>. 
+                        Esta ley física establece que la rapidez con la que un cuerpo cambia su temperatura es directamente proporcional a la diferencia 
+                        entre su temperatura actual y la temperatura ambiente del medio que lo rodea.
+                    </p>
+                    
+                    <!-- Ecuación Diferencial en LaTeX -->
+                    <div class="equation-card">
+                        <span class="equation-label">Ecuación Diferencial del Modelo</span>
+                        <div class="equation-rendered">
+                            $$\frac{dT}{dt} = -k(T - T_s)$$
+                        </div>
+                    </div>
+
+                    <p>
+                        Esta es una ecuación diferencial ordinaria de primer orden y separable. Al integrar ambos lados con la condición inicial de que 
+                        en el tiempo $t = 0$ la temperatura de la sopa es $T_0$, obtenemos la función exponencial que nos da la temperatura exacta en cualquier minuto:
+                    </p>
+
+                    <!-- Solución en LaTeX -->
+                    <div class="equation-card">
+                        <span class="equation-label">Solución Analítica de la Ecuación</span>
+                        <div class="equation-rendered">
+                            $$T(t) = T_s + (T_0 - T_s)e^{-kt}$$
+                        </div>
+                    </div>
+
+                    <h2>¿Qué significan estas variables en tu sopa?</h2>
+                    
+                    <div class="variables-list">
+                        <div class="variable-item">
+                            <div class="variable-symbol">$T(t)$</div>
+                            <div class="variable-desc"><strong>Temperatura actual:</strong> Es la temperatura de los fideos y el caldo en el minuto exacto $t$ (°C).</div>
+                        </div>
+                        <div class="variable-item">
+                            <div class="variable-symbol">$t$</div>
+                            <div class="variable-desc"><strong>Tiempo ($min$):</strong> El tiempo transcurrido desde que vertiste el agua hirviendo y tapaste la sopa.</div>
+                        </div>
+                        <div class="variable-item">
+                            <div class="variable-symbol">$T_0$</div>
+                            <div class="variable-desc"><strong>Temperatura Inicial:</strong> Generalmente ronda los $95^\circ\text{C}$ o $100^\circ\text{C}$ si el agua acaba de salir del punto de ebullición.</div>
+                        </div>
+                        <div class="variable-item">
+                            <div class="variable-symbol">$T_s$</div>
+                            <div class="variable-desc"><strong>Temperatura Ambiente:</strong> Temperatura de tu habitación, salón de clases o cocina. Si el cuarto está frío, la sopa se enfriará más rápido.</div>
+                        </div>
+                        <div class="variable-item">
+                            <div class="variable-symbol">$k$</div>
+                            <div class="variable-desc">
+                                <strong>Constante de enfriamiento ($1/min$):</strong> Representa qué tan fácil escapa el calor del vaso. 
+                                Depende de factores físicos como la resistencia térmica del unicel, el tamaño del vaso, y si dejas la tapa de aluminio abierta u ocupas un tenedor para mantenerla cerrada.
+                            </div>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Panel Educativo Lateral -->
+                <aside class="card edu-tip">
+                    <h3>💡 El Poder del Vaso de Unicel</h3>
+                    <p>
+                        El vaso de una Sopa Maruchan está hecho de <strong>poliestireno expandido (unicel)</strong>, un excelente aislante térmico. 
+                        Este material tiene una conductividad térmica sumamente baja debido a que está compuesto por un 95% de aire atrapado en microceldas.
+                    </p>
+                    <br>
+                    <p>
+                        Físicamente esto significa que la constante de enfriamiento $k$ de tu sopa es muy pequeña (usualmente entre $0.08$ y $0.15$), lo que 
+                        mantiene el calor por mucho más tiempo comparado con servirla en un plato de cerámica convencional (donde $k$ sería mayor).
+                    </p>
+                    <br>
+                    <p>
+                        <strong>¡Prueba esto en el Simulador!</strong> Si dejas la sopa destapada, la constante $k$ aumenta (por ejemplo, a $0.25$). Mueve el control deslizante de $k$ hacia valores mayores y observa lo rápido que desciende la gráfica hacia la temperatura ambiente.
+                    </p>
+                </aside>
+            </div>
+        </main>
+    </div>
+
+    <!-- Cargar archivo de interacción principal -->
+    <script src="script.js"></script>
+</body>
+</html>
